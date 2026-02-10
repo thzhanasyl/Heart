@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hearts</title>
   <style>
     body {
@@ -9,11 +10,13 @@
       overflow: hidden;
       background: black;
       height: 100vh;
+      width: 100vw;
+      touch-action: none;
     }
 
     .heart {
       position: absolute;
-      bottom: -50px;
+      bottom: -80px;
       background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="red" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>');
       background-repeat: no-repeat;
       background-size: contain;
@@ -21,7 +24,7 @@
       image-rendering: crisp-edges;
       animation: floatUp linear forwards;
       opacity: 0.9;
-      filter: drop-shadow(0 0 10px red);
+      filter: drop-shadow(0 0 15px red);
     }
 
     @keyframes floatUp {
@@ -30,8 +33,34 @@
         opacity: 0.9;
       }
       100% {
-        transform: translateY(-120vh) scale(1.3);
+        transform: translateY(-120vh) scale(1.4);
         opacity: 0;
+      }
+    }
+
+    /* Для мобильных устройств */
+    @media (max-width: 768px) {
+      .heart {
+        bottom: -100px;
+        filter: drop-shadow(0 0 20px red);
+      }
+      
+      @keyframes floatUp {
+        0% {
+          transform: translateY(0) scale(1);
+          opacity: 0.9;
+        }
+        100% {
+          transform: translateY(-150vh) scale(1.5);
+          opacity: 0;
+        }
+      }
+    }
+
+    /* Для очень маленьких экранов */
+    @media (max-width: 480px) {
+      .heart {
+        bottom: -120px;
       }
     }
   </style>
@@ -43,8 +72,16 @@
     const heart = document.createElement("div");
     heart.className = "heart";
     
-    // Размер
-    const size = Math.random() * 30 + 40; // 40-70px
+    // Размер для мобильных - больше
+    let size;
+    if (window.innerWidth <= 768) {
+      // Для телефонов: 60-100px
+      size = Math.random() * 40 + 60;
+    } else {
+      // Для десктопов: 50-80px
+      size = Math.random() * 30 + 50;
+    }
+    
     heart.style.width = size + "px";
     heart.style.height = size + "px";
     
@@ -57,15 +94,15 @@
     heart.style.animationDuration = duration + "s";
     
     // Яркие красные цвета
-    const colors = ["#ff0000", "#ff2222", "#ff3333", "#ff4444", "#ff1111"];
+    const colors = ["#ff0000", "#ff2222", "#ff3333", "#ff4444", "#ff1111", "#ff5555"];
     const color = colors[Math.floor(Math.random() * colors.length)];
     
-    // Меняем цвет SVG
+    // SVG сердце с выбранным цветом
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size}"><path fill="${color}" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
     heart.style.backgroundImage = `url('data:image/svg+xml;utf8,${encodeURIComponent(svg)}')`;
     
     // Подсветка
-    heart.style.filter = `drop-shadow(0 0 12px ${color}) brightness(1.2)`;
+    heart.style.filter = `drop-shadow(0 0 ${window.innerWidth <= 768 ? '20px' : '15px'} ${color}) brightness(1.3)`;
     
     document.body.appendChild(heart);
     
@@ -77,13 +114,34 @@
     }, duration * 1000);
   }
   
-  // Создаем сердечки
-  setInterval(createHeart, 200);
+  // Адаптивная частота создания сердец
+  function getHeartInterval() {
+    return window.innerWidth <= 768 ? 150 : 200; // Чаще на телефонах
+  }
+  
+  // Создаем сердечки с адаптивной частотой
+  let interval = setInterval(createHeart, getHeartInterval());
+  
+  // Перезапускаем интервал при изменении размера окна
+  window.addEventListener('resize', () => {
+    clearInterval(interval);
+    interval = setInterval(createHeart, getHeartInterval());
+  });
   
   // Стартовые сердечки
-  for(let i = 0; i < 10; i++) {
-    setTimeout(createHeart, i * 100);
+  for(let i = 0; i < 8; i++) {
+    setTimeout(createHeart, i * 200);
   }
+  
+  // Создание сердечек по тапу на мобильных
+  document.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    for(let i = 0; i < 3; i++) {
+      setTimeout(() => {
+        createHeart();
+      }, i * 100);
+    }
+  });
 </script>
 
 </body>
